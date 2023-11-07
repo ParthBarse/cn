@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 
-public class C06 {
+public class C20 {
     public static void main(String[] args) {
         String serverAddress = "localhost"; // Use the server's IP or hostname
         int serverPort = 12345;

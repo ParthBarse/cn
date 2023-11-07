@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 
-public class S06 {
+public class S20 {
     public static void main(String[] args) {
         int port = 12345;
 

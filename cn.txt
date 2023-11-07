@@ -439,6 +439,85 @@ public class C08 {
 
 9. Write a program using UDP Sockets to enable file transfer (Script, Text, Audio and Video one file each) between two machines. 
 
+// Server -
+
+import java.io.*;
+import java.net.*;
+
+public class S09 {
+    public static void main(String[] args) {
+        DatagramSocket serverSocket = null;
+
+        try {
+            serverSocket = new DatagramSocket(9876); // Server port
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            serverSocket.receive(receivePacket);
+            String filename = new String(receivePacket.getData(), 0, receivePacket.getLength());
+
+            File file = new File(filename);
+            if (!file.exists()) {
+                System.out.println("File not found.");
+                return;
+            }
+
+            FileInputStream fis = new FileInputStream(file);
+            byte[] sendData = new byte[1024];
+            DatagramPacket sendPacket;
+
+            while (fis.read(sendData) != -1) {
+                sendPacket = new DatagramPacket(sendData, sendData.length, receivePacket.getAddress(), receivePacket.getPort());
+                serverSocket.send(sendPacket);
+                sendData = new byte[1024];
+            }
+            fis.close();
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// Client -
+
+import java.io.*;
+import java.net.*;
+
+public class C09 {
+    public static void main(String[] args) {
+        DatagramSocket clientSocket = null;
+
+        try {
+            clientSocket = new DatagramSocket();
+
+            InetAddress serverAddress = InetAddress.getLocalHost();
+            int serverPort = 9876; // Server port
+
+            String filename = "sample.txt"; // File to request from the server
+            byte[] requestData = filename.getBytes();
+            DatagramPacket requestPacket = new DatagramPacket(requestData, requestData.length, serverAddress, serverPort);
+
+            clientSocket.send(requestPacket);
+
+            File receivedFile = new File("C:\\Users\\Parth\\Desktop\\cn\\Assignment_no_6\\received_" + filename);
+            FileOutputStream fos = new FileOutputStream(receivedFile);
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            while (true) {
+                clientSocket.receive(receivePacket);
+                fos.write(receivePacket.getData(), 0, receivePacket.getLength());
+                fos.flush();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
 ---------------------------------------------------------------------------------------------------------
 
 10. Capture packets using Wireshark and accomplish the following and save the output in file: 
@@ -675,7 +754,7 @@ public class C18 {
 import java.net.*;
 import java.io.*;
 
-public class S06 {
+public class S20 {
     public static void main(String[] args) {
         int port = 12345;
 
@@ -722,7 +801,7 @@ public class S06 {
 import java.net.*;
 import java.io.*;
 
-public class C06 {
+public class C20 {
     public static void main(String[] args) {
         String serverAddress = "localhost"; // Use the server's IP or hostname
         int serverPort = 12345;
