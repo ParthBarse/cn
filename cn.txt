@@ -1,0 +1,757 @@
+1. Demonstrate the different types of topologies and types of transmission media by using a packet tracer tool. 
+
+// use 01.pkt
+
+------------------------------
+
+2. Use packet Tracer tool for configuration of 3 router networks using one of the following protocols RIP. 
+
+// use 02.pkt
+
+-------------------------------
+
+3.Write a program to demonstrate Sub-netting and find subnet masks. 
+
+def calculate_subnet_mask(ip_address):
+
+    octets = ip_address.split('.')
+
+    first_octet = int(octets[0])
+
+    if 1 <= first_octet <= 126:
+        ip_class = 'A'
+        subnet_mask = '255.0.0.0'
+    elif 128 <= first_octet <= 191:
+        ip_class = 'B'
+        subnet_mask = '255.255.0.0'
+    elif 192 <= first_octet <= 223:
+        ip_class = 'C'
+        subnet_mask = '255.255.255.0'
+    elif 224 <= first_octet <= 239:
+        ip_class = 'D (Multicast)'
+        subnet_mask = 'N/A'
+    elif 240 <= first_octet <= 255:
+        ip_class = 'E (Reserved)'
+        subnet_mask = 'N/A'
+    else:
+        ip_class = 'Invalid'
+        subnet_mask = 'N/A'
+
+    return ip_class, subnet_mask
+
+
+ip_address = input("Enter an IP address: ")
+
+
+ip_class, subnet_mask = calculate_subnet_mask(ip_address)
+
+print(f"IP Address: {ip_address}")
+print(f"Class: {ip_class}")
+print(f"Subnet Mask: {subnet_mask}")
+
+------------------------------------------------------------------------------------
+
+4.Write a program to implement link state routing protocol to find a suitable path for transmission.
+
+g = {
+        'A': {'B': 1, 'C': 4, 'D': 2},
+        'B': {'A': 9, 'E': 5},
+        'C': {'A': 4, 'F': 15},
+        'D': {'A': 10, 'F': 7},
+        'E': {'B': 3, 'J': 7},
+        'F': {'C': 11, 'D': 14, 'K': 3, 'G': 9},
+        'G': {'F': 12, 'I': 4},
+        'H': {'J': 13},
+        'I': {'G': 6, 'J': 7},
+        'J': {'H': 2, 'I': 4},
+        'K': {'F': 6}
+    }
+
+s = 'A'
+sp = pn = {}
+sp[s] = 0
+unvisited = list(g)
+
+while unvisited:
+    cur = None
+    for node in unvisited:
+        if node in sp:
+            if cur is None or sp[node] < sp[cur]:
+                cur = node
+    if cur is None:
+        break
+    unvisited.remove(cur)
+    for n, w in g[cur].items():
+        t = sp[cur] + w
+        if t < sp.get(n, float('inf')):
+            sp[n] = t
+            pn[n] = cur
+
+e = 'H'
+path = []
+while e:
+    path.insert(0, e)
+    e = pn.get(e)
+
+print('Shortest path from A to the ending node:')
+
+for i in path[::-1]:
+    print(i, end="<-")
+
+
+-------------------------------------------------------------------------------------
+
+5. Write TCP Client, TCP Server Socket Programming using Java. 
+
+// Server -
+
+import java.io.*;
+import java.net.*;
+
+public class S05 {
+    public static void main(String[] args) {
+        int port = 12345;
+
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
+            System.out.println("Server is waiting for a connection...");
+
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Connected to a client.");
+
+            // Create input and output streams for communication
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            // Create a BufferedReader to get messages from the user
+            BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                // Receive data from the client
+                String clientMessage = in.readLine();
+                System.out.println("Received from client << : " + clientMessage);
+
+                // Get a message from the user
+                System.out.print("Enter a message to send to the client >> : ");
+                String serverMessage = userIn.readLine();
+
+                // Send the message to the client
+                out.println(serverMessage);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+// Client - 
+
+import java.io.*;
+import java.net.*;
+
+public class C05 {
+    public static void main(String[] args) {
+        String serverAddress = "localhost"; // Use the server's IP or hostname
+        int serverPort = 12345;
+
+        try {
+            Socket clientSocket = new Socket(serverAddress, serverPort);
+
+            // Create input and output streams for communication
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            // Create a BufferedReader to get messages from the user
+            BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                // Get a message from the user and send it to the server
+                System.out.print("Enter a message to send to the server >> : ");
+                String clientMessage = userIn.readLine();
+                out.println(clientMessage);
+
+                // Receive a response from the server
+                String serverResponse = in.readLine();
+                System.out.println("Received from server << : " + serverResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+----------------------------------------------------------------------------------------------
+
+6. Write UDP Client, UDP Server Socket Programming using Java. 
+
+// Server - 
+
+import java.net.*;
+import java.io.*;
+
+public class S06 {
+    public static void main(String[] args) {
+        int port = 12345;
+
+        try {
+            DatagramSocket serverSocket = new DatagramSocket(port);
+            System.out.println("Server is listening on port " + port);
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            while (true) {
+                serverSocket.receive(receivePacket);
+                String clientMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received from client: " + clientMessage);
+
+                InetAddress clientAddress = receivePacket.getAddress();
+                int clientPort = receivePacket.getPort();
+
+                // Get a message from the user
+                BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+                System.out.print("Enter a message to send to the client: ");
+                String serverMessage = userInput.readLine();
+
+                // Send the server's message to the client
+                byte[] sendData = serverMessage.getBytes();
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+                serverSocket.send(sendPacket);
+
+                // Receive a response from the client
+                receivePacket.setLength(receiveData.length); // Reset the packet length
+                serverSocket.receive(receivePacket);
+                String clientResponse = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received from client: " + clientResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+// Client - 
+
+import java.net.*;
+import java.io.*;
+
+public class C06 {
+    public static void main(String[] args) {
+        String serverAddress = "localhost"; // Use the server's IP or hostname
+        int serverPort = 12345;
+
+        try {
+            DatagramSocket clientSocket = new DatagramSocket();
+            InetAddress serverInetAddress = InetAddress.getByName(serverAddress);
+
+            while (true) {
+                // Get a message from the user and send it to the server
+                BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+                System.out.print("Enter a message to send to the server: ");
+                String clientMessage = userInput.readLine();
+                byte[] sendData = clientMessage.getBytes();
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverInetAddress, serverPort);
+                clientSocket.send(sendPacket);
+
+                // Receive a response from the server
+                byte[] receiveData = new byte[1024];
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                clientSocket.receive(receivePacket);
+                String serverResponse = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received from server: " + serverResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+-------------------------------------------------------------------------------------------------------------
+
+7. Write a program using TCP socket for wired network to say hello to each other. 
+
+// Server - 
+
+import java.io.*;
+import java.net.*;
+
+public class S07 {
+    public static void main(String[] args) {
+        int port = 12345;
+
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
+            System.out.println("Server is waiting for a connection...");
+
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Connected to a client.");
+
+            // Create input and output streams for communication
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            // Create a BufferedReader to get messages from the user
+            BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                // Receive data from the client
+                String clientMessage = in.readLine();
+                System.out.println("Received from client << : " + clientMessage);
+
+                // Get a message from the user
+                System.out.print("Enter a message to send to the client >> : ");
+                String serverMessage = userIn.readLine();
+
+                // Send the message to the client
+                out.println(serverMessage);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+// Client - 
+
+import java.io.*;
+import java.net.*;
+
+public class C07 {
+    public static void main(String[] args) {
+        String serverAddress = "localhost"; // Use the server's IP or hostname
+        int serverPort = 12345;
+
+        try {
+            Socket clientSocket = new Socket(serverAddress, serverPort);
+
+            // Create input and output streams for communication
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            // Create a BufferedReader to get messages from the user
+            BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                // Get a message from the user and send it to the server
+                System.out.print("Enter a message to send to the server >> : ");
+                String clientMessage = userIn.readLine();
+                out.println(clientMessage);
+
+                // Receive a response from the server
+                String serverResponse = in.readLine();
+                System.out.println("Received from server << : " + serverResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+--------------------------------------------------------------------------------------------------------
+
+8. Write a program using TCP socket for wired network for file transfer. 
+
+// Server -
+
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+public class S08 
+{ 
+ public static void main(String[] args) throws Exception 
+{
+ //Initialize Sockets
+ ServerSocket ssock = new ServerSocket(12127);
+ Socket socket = ssock.accept();
+ //The InetAddress specification
+ InetAddress IA = InetAddress.getByName("localhost"); 
+ 
+ //Specify the file
+ File file = new File("C:\\Users\\Parth\\Desktop\\cn\\sample.txt");
+ FileInputStream fis = new FileInputStream(file);
+ BufferedInputStream bis = new BufferedInputStream(fis); 
+ //Get socket's output stream
+ OutputStream os = socket.getOutputStream();
+ //Read File Contents into contents array 
+ byte[] contents;
+ long fileLength = file.length(); 
+ long current = 0;
+ long start = System.nanoTime();
+ while(current!=fileLength){ 
+ int size = 10000;
+ if(fileLength - current >= size)
+ current += size; 
+ else{ 
+ size = (int)(fileLength - current); 
+ current = fileLength;
+ } 
+ contents = new byte[size]; 
+ bis.read(contents, 0, size); 
+ os.write(contents);
+ System.out.print("Sending file ... "+(current*100)/fileLength+"% complete!");
+ } 
+ os.flush(); 
+ //File transfer done. Close the socket connection!
+ socket.close();
+ ssock.close();
+ System.out.println("File sent succesfully!");
+ } }
+
+
+// Client - 
+
+import java.io.BufferedOutputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+
+public class C08 { 
+    public static void main(String[] args) throws Exception{
+        //Initialize socket
+        Socket socket = new Socket(InetAddress.getByName("localhost"), 12127);
+        byte[] contents = new byte[10000];
+        //Initialize the FileOutputStream to the output file's full path.
+        FileOutputStream fos = new FileOutputStream("C:\\Users\\Parth\\Desktop\\cn\\sample_rec.txt");
+        BufferedOutputStream bos = new BufferedOutputStream(fos);
+        InputStream is = socket.getInputStream();
+        //No of bytes read in one read() call
+
+         
+        int bytesRead = 0; 
+        while((bytesRead=is.read(contents))!=-1)
+        bos.write(contents, 0, bytesRead); 
+        bos.flush(); 
+        socket.close(); 
+        System.out.println("File saved successfully!");
+    }
+}
+
+
+
+--------------------------------------------------------------------------------------------------------
+
+9. Write a program using UDP Sockets to enable file transfer (Script, Text, Audio and Video one file each) between two machines. 
+
+---------------------------------------------------------------------------------------------------------
+
+10. Capture packets using Wireshark and accomplish the following and save the output in file: 
+a. Capture all TCP traffic to/from Facebook, during the time when you log in to your Facebook account 
+b. Write a DISPLAY filter expression to count all TCP packets (captured under item #1) that have the flags SYN, PSH, and RST set. Show the fraction of packets that had each flag set. 
+c. Capture all HTTP traffic to/from Facebook (other website), when you log in to your Facebook account 
+d. Count how many TCP packets you received from / sent to Facebook (other website), and how many of each were also HTTP packets. 
+
+-----------------------------------------------------------------------------------------------------------
+
+11. Study and Analyze the performance of HTTP, HTTPS and FTP protocol using Packet tracer tool.
+
+// use 11.pkt
+
+------------------------------------------------------------------------------------------------------------
+
+12. To study the SSL protocol by capturing the packets using Wireshark tool while visiting any SSL secured website (banking, e-commerce etc.). 
+
+
+--------------------------------------------------------------------------------------------------------------
+
+13. Installing and configuring DHCP server and assign IP addresses to client machines using DHCP server. 
+
+// use 13.pkt
+
+exit
+conf term
+int fa 0/1
+ip helper-address 172.162.1.2
+
+--------------------------------------------------------------------------------------------------------------
+
+14. Write a program for DNS lookup. Given an IP address input, it should return URL and vice versa. 
+
+import java.net.*;
+import java.util.Scanner;
+
+public class Dns14 {
+    public static void main(String[] args) {
+        String host;
+        Scanner ch = new Scanner(System.in);
+        System.out.print("1. Enter Host Name\n2. Enter IP address\nChoice=");
+        int choice = ch.nextInt();
+
+        if (choice == 1) {
+            try (Scanner input = new Scanner(System.in)) {
+                System.out.print("\nEnter host name: ");
+                host = input.nextLine();
+                try {
+                    InetAddress address = InetAddress.getByName(host);
+                    System.out.println("IP address: " + address.getHostAddress());
+                    System.out.println("Host name: " + address.getHostName());
+                    System.out.println("Host name and IP address: " + address.toString());
+                } catch (UnknownHostException ex) {
+                    System.out.println("Could not find " + host);
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        } else if (choice == 2) {
+            try (Scanner input = new Scanner(System.in)) {
+                System.out.print("\nEnter IP address: ");
+                host = input.nextLine();
+                try {
+                    InetAddress address = InetAddress.getByName(host);
+                    System.out.println("Host name: " + address.getHostName());
+                    System.out.println("IP address: " + address.getHostAddress());
+                    System.out.println("Host name and IP address: " + address.toString());
+                } catch (UnknownHostException ex) {
+                    System.out.println("Could not find " + host);
+                }
+            } catch (Exception e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Invalid choice. Please enter 1 or 2.");
+        }
+    }
+}
+
+
+---------------------------------------------------------------------------------------------------------------
+
+15. Write a program to demonstrate Sub-netting and find subnet masks.
+
+def calculate_subnet_mask(ip_address):
+
+    octets = ip_address.split('.')
+
+    first_octet = int(octets[0])
+
+    if 1 <= first_octet <= 126:
+        ip_class = 'A'
+        subnet_mask = '255.0.0.0'
+    elif 128 <= first_octet <= 191:
+        ip_class = 'B'
+        subnet_mask = '255.255.0.0'
+    elif 192 <= first_octet <= 223:
+        ip_class = 'C'
+        subnet_mask = '255.255.255.0'
+    elif 224 <= first_octet <= 239:
+        ip_class = 'D (Multicast)'
+        subnet_mask = 'N/A'
+    elif 240 <= first_octet <= 255:
+        ip_class = 'E (Reserved)'
+        subnet_mask = 'N/A'
+    else:
+        ip_class = 'Invalid'
+        subnet_mask = 'N/A'
+
+    return ip_class, subnet_mask
+
+
+ip_address = input("Enter an IP address: ")
+
+
+ip_class, subnet_mask = calculate_subnet_mask(ip_address)
+
+print(f"IP Address: {ip_address}")
+print(f"Class: {ip_class}")
+print(f"Subnet Mask: {subnet_mask}")
+
+-----------------------------------------------------------------------------------------------------------
+
+16. Demonstrate the different types of topologies and types of transmission media by using a packet tracer tool. 
+
+// use 16.pkt
+
+------------------------------------------------------------------------------------------------------------
+
+17. Capture packets using Wireshark and accomplish the following and save the output in file: 
+a. Capture all TCP traffic to/from Facebook, during the time when you log in to your Facebook account 
+b. Write a DISPLAY filter expression to count all TCP packets (captured under item #1) that have the flags SYN, PSH, and RST set. Show the fraction of packets that had each flag set. 
+c. Capture all HTTP traffic to/from Facebook (other website), when you log in to your Facebook account 
+d. Count how many TCP packets you received from / sent to Facebook (other website), and how many of each were also HTTP packets. 
+
+
+----------------------------------------------------------------------------------------------------------------
+
+18. Write a program using TCP socket for wired network to say hello to each other. 
+
+// Server -
+
+import java.io.*;
+import java.net.*;
+
+public class S18 {
+    public static void main(String[] args) {
+        int port = 12345;
+
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
+            System.out.println("Server is waiting for a connection...");
+
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Connected to a client.");
+
+            // Create input and output streams for communication
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            // Create a BufferedReader to get messages from the user
+            BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                // Receive data from the client
+                String clientMessage = in.readLine();
+                System.out.println("Received from client << : " + clientMessage);
+
+                // Get a message from the user
+                System.out.print("Enter a message to send to the client >> : ");
+                String serverMessage = userIn.readLine();
+
+                // Send the message to the client
+                out.println(serverMessage);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+// Client -
+
+import java.io.*;
+import java.net.*;
+
+public class C18 {
+    public static void main(String[] args) {
+        String serverAddress = "localhost"; // Use the server's IP or hostname
+        int serverPort = 12345;
+
+        try {
+            Socket clientSocket = new Socket(serverAddress, serverPort);
+
+            // Create input and output streams for communication
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            // Create a BufferedReader to get messages from the user
+            BufferedReader userIn = new BufferedReader(new InputStreamReader(System.in));
+
+            while (true) {
+                // Get a message from the user and send it to the server
+                System.out.print("Enter a message to send to the server >> : ");
+                String clientMessage = userIn.readLine();
+                out.println(clientMessage);
+
+                // Receive a response from the server
+                String serverResponse = in.readLine();
+                System.out.println("Received from server << : " + serverResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+-----------------------------------------------------------------------------------------------------------------
+
+19. Use packet Tracer tool for configuration of 3 router networks using one of the following protocols RIP. 
+
+// use 19.pkt
+
+
+--------------------------------------------------------------------------------------------------------------
+
+20. Write UDP Client, UDP Server Socket Programming using Java. 
+
+// Server - 
+
+import java.net.*;
+import java.io.*;
+
+public class S06 {
+    public static void main(String[] args) {
+        int port = 12345;
+
+        try {
+            DatagramSocket serverSocket = new DatagramSocket(port);
+            System.out.println("Server is listening on port " + port);
+
+            byte[] receiveData = new byte[1024];
+            DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+
+            while (true) {
+                serverSocket.receive(receivePacket);
+                String clientMessage = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received from client: " + clientMessage);
+
+                InetAddress clientAddress = receivePacket.getAddress();
+                int clientPort = receivePacket.getPort();
+
+                // Get a message from the user
+                BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+                System.out.print("Enter a message to send to the client: ");
+                String serverMessage = userInput.readLine();
+
+                // Send the server's message to the client
+                byte[] sendData = serverMessage.getBytes();
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, clientAddress, clientPort);
+                serverSocket.send(sendPacket);
+
+                // Receive a response from the client
+                receivePacket.setLength(receiveData.length); // Reset the packet length
+                serverSocket.receive(receivePacket);
+                String clientResponse = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received from client: " + clientResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+// Client - 
+
+import java.net.*;
+import java.io.*;
+
+public class C06 {
+    public static void main(String[] args) {
+        String serverAddress = "localhost"; // Use the server's IP or hostname
+        int serverPort = 12345;
+
+        try {
+            DatagramSocket clientSocket = new DatagramSocket();
+            InetAddress serverInetAddress = InetAddress.getByName(serverAddress);
+
+            while (true) {
+                // Get a message from the user and send it to the server
+                BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+                System.out.print("Enter a message to send to the server: ");
+                String clientMessage = userInput.readLine();
+                byte[] sendData = clientMessage.getBytes();
+                DatagramPacket sendPacket = new DatagramPacket(sendData, sendData.length, serverInetAddress, serverPort);
+                clientSocket.send(sendPacket);
+
+                // Receive a response from the server
+                byte[] receiveData = new byte[1024];
+                DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+                clientSocket.receive(receivePacket);
+                String serverResponse = new String(receivePacket.getData(), 0, receivePacket.getLength());
+                System.out.println("Received from server: " + serverResponse);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+--------------------------------------------------------------------------------------------------------------
