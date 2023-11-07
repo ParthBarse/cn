@@ -544,8 +544,9 @@ d. Count how many TCP packets you received from / sent to Facebook (other websit
 // use 13.pkt
 
 exit
+en
 conf term
-int fa 0/1
+int fa 1/0
 ip helper-address 172.162.1.2
 
 --------------------------------------------------------------------------------------------------------------
